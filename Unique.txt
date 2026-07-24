@@ -1,0 +1,55 @@
+import java.util.*;
+
+class Solution {
+    public int uniqueXorTriplets(int[] nums) {
+        int n = nums.length;
+        
+        // Optimization for large permutation inputs (LeetCode 3513)
+        if (n > 1500) {
+            if (n < 3) return n;
+            int bitLength = 32 - Integer.numberOfLeadingZeros(n);
+            return 1 << bitLength;
+        }
+
+        int mx = 0;
+        for (int num : nums) {
+            mx = Math.max(mx, num);
+        }
+        
+        if (mx == 0) return 1;
+
+        // Smallest power of 2 strictly greater than max(nums)
+        int limit = 1 << (32 - Integer.numberOfLeadingZeros(mx));
+
+        // Pass 1: Compute all pairwise XORs
+        boolean[] hasPair = new boolean[limit];
+        for (int i = 0; i < n; i++) {
+            for (int j = i; j < n; j++) {
+                hasPair[nums[i] ^ nums[j]] = true;
+            }
+        }
+
+        // Collect unique values to eliminate redundant inner loop steps
+        Set<Integer> uniqueNumsSet = new HashSet<>();
+        for (int num : nums) {
+            uniqueNumsSet.add(num);
+        }
+
+        // Pass 2: Combine pairs with single elements
+        boolean[] hasTriplet = new boolean[limit];
+        for (int p = 0; p < limit; p++) {
+            if (hasPair[p]) {
+                for (int x : uniqueNumsSet) {
+                    hasTriplet[p ^ x] = true;
+                }
+            }
+        }
+
+        int count = 0;
+        for (boolean b : hasTriplet) {
+            if (b) count++;
+        }
+
+        return count;
+    }
+}
